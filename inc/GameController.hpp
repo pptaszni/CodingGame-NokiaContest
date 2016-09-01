@@ -56,12 +56,14 @@ public:
 
     void loadInitialData(std::istream& input);
     void loadRuntimeData(std::istream& input);
-    void writeSolution(PointI dest0, int thrust0, PointI dest1, int thrust1);
+    void writeSolution(PointI dest, int thrust);
 
 private:
+    int playerCount_;
     int laps_;
+    int boosts_;
     int checkpointCount_;
     std::vector<PointI> checkpointPos_;
-    std::vector<Pod> myPods_;
+    Pod myPod_;
     std::vector<Pod> enemyPods_;
 };

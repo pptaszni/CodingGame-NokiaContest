@@ -1,8 +1,8 @@
 #include "GameController.hpp"
 
 #define DEBUG_PRINT 1
-#define MY_PODS_NUM 2
-#define ENEMY_PODS_NUM 2
+#define MY_PODS_NUM 1
+#define ENEMY_PODS_NUM 1
 
 using namespace::std;
 
@@ -25,10 +25,7 @@ void Pod::setNextCheckPointId(int nextCheckPointId) { nextCheckPointId_ = nextCh
 
 
 GameController::GameController()
-{
-    myPods_.resize(MY_PODS_NUM);
-    enemyPods_.resize(ENEMY_PODS_NUM);
-}
+{}
 
 void GameController::startGame()
 {
@@ -43,17 +40,18 @@ void GameController::trivialStrategy()
     while(1)
     {
         loadRuntimeData(cin);
-        PointI dest0 = checkpointPos_[myPods_[0].getNextCheckPointId()];
-        PointI dest1 = checkpointPos_[myPods_[0].getNextCheckPointId()];
-        int thrust0 = 150;
-        int thrust1 = 50;
-        writeSolution(dest0, thrust0, dest1, thrust1);
+        PointI dest = checkpointPos_[myPod_.getNextCheckPointId()];
+        int thrust = 50;
+        writeSolution(dest, thrust);
     }
 }
 
 void GameController::loadInitialData(istream& input)
 {
+    input >> playerCount_; input.ignore();
+    enemyPods_.resize(playerCount_-1);
     input >> laps_; input.ignore();
+    input >> boosts_; input.ignore();
     input >> checkpointCount_; input.ignore();
     checkpointPos_.resize(checkpointCount_);
     for (auto& pos: checkpointPos_)
@@ -62,46 +60,37 @@ void GameController::loadInitialData(istream& input)
         int checkpointY;
         input >> checkpointX >> checkpointY; input.ignore();
         pos.setXY(checkpointX, checkpointY);
+        debugLog("Checkpoint created: "+to_string(checkpointX)+", "+to_string(checkpointY));
     }
 }
 
 void GameController::loadRuntimeData(istream& input)
 {
-    for (auto& myPod: myPods_)
-    {
-        int x;
-        int y;
-        int vx;
-        int vy;
-        int angle;
-        int nextCheckPointId;
-        input >> x >> y >> vx >> vy >> angle >> nextCheckPointId; input.ignore();
-        myPod.setPos(PointI(x,y));
-        myPod.setVel(PointI(vx,vy));
-        myPod.setAngle(angle);
-        myPod.setNextCheckPointId(nextCheckPointId);
-    }
+    int x;
+    int y;
+    int vx;
+    int vy;
+    int nextCheckPointId;
+    input >> x >> y >> vx >> vy >> nextCheckPointId; input.ignore();
+    myPod_.setPos(PointI(x,y));
+    myPod_.setVel(PointI(vx,vy));
+    myPod_.setNextCheckPointId(nextCheckPointId);
+
     for (auto& enemyPod: enemyPods_)
     {
         int x;
         int y;
         int vx;
         int vy;
-        int angle;
         int nextCheckPointId;
-        input >> x >> y >> vx >> vy >> angle >> nextCheckPointId; input.ignore();
+        input >> x >> y >> vx >> vy >> nextCheckPointId; input.ignore();
         enemyPod.setPos(PointI(x,y));
         enemyPod.setVel(PointI(vx,vy));
-        enemyPod.setAngle(angle);
         enemyPod.setNextCheckPointId(nextCheckPointId);
     }
 }
 
-void GameController::writeSolution(PointI dest0,
-    int thrust0,
-    PointI dest1,
-    int thrust1)
+void GameController::writeSolution(PointI dest, int thrust)
 {
-    cout << dest0.getX() << " " << dest0.getY() << " " << thrust0 << endl;
-    cout << dest1.getX() << " " << dest1.getY() << " " << thrust1 << endl;
+    cout << dest.getX() << " " << dest.getY() << " " << thrust << endl;
 }
