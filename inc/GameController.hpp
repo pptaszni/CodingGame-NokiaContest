@@ -1,3 +1,6 @@
+#ifndef GAMECONTROLLER_HPP
+#define GAMECONTROLLER_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,6 +10,13 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <memory>
+
+// FWDs =================================
+
+class Calculator;
+
+// ======================================
 
 template <typename T>
 class Point
@@ -50,6 +60,7 @@ class GameController
 {
 public:
     GameController();
+    ~GameController();
     void startGame();
 
     void trivialStrategy();
@@ -59,6 +70,8 @@ public:
     void writeSolution(PointI dest, int thrust);
 
 private:
+    Calculator* calculator_;
+
     int playerCount_;
     int laps_;
     int boosts_;
@@ -67,3 +80,5 @@ private:
     Pod myPod_;
     std::vector<Pod> enemyPods_;
 };
+
+#endif  // GAMECONTROLLER_HPP

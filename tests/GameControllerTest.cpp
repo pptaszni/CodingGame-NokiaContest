@@ -3,7 +3,21 @@
 #include <fstream>
 #include <cmath>
 
+#include "GameController.hpp"
+
 using namespace std;
+
+class GameControllerFixture: public testing::Test
+{
+public:
+    GameController sut_;
+};
+
+
+TEST_F(GameControllerFixture, shouldNotCrash)
+{
+    ASSERT_TRUE(true);
+}
 
 
 TEST(SampleTest, shouldPass)

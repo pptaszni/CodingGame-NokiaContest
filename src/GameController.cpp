@@ -1,4 +1,5 @@
 #include "GameController.hpp"
+#include "Calculator.hpp"
 
 #define DEBUG_PRINT 1
 #define MY_PODS_NUM 1
@@ -24,8 +25,15 @@ void Pod::setAngle(int angle) { angle_ = angle; }
 void Pod::setNextCheckPointId(int nextCheckPointId) { nextCheckPointId_ = nextCheckPointId; }
 
 
-GameController::GameController()
+GameController::GameController():
+    calculator_(new Calculator())
 {}
+
+GameController::~GameController()
+{
+    if (calculator_)
+        delete calculator_;
+}
 
 void GameController::startGame()
 {
