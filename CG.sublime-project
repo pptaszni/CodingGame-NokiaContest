@@ -4,7 +4,7 @@
         {
             "path": ".",
             "folder_include_patterns":
-            ["src", "tests", "inc"]
+            ["src", "tests", "inc", "python"]
         }
 	]
 }
