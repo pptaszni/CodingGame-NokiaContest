@@ -94,6 +94,27 @@ class CalculatorTests(unittest.TestCase):
         numpy.testing.assert_array_almost_equal(resB, IB)
         numpy.testing.assert_array_almost_equal(resC, IC)
 
+    def testCalculateCorrectSplineCoefficients(self):
+        positions = [Point(6,4), Point(11,7), Point(3,7)]
+        velocities = [Point(-1, -5)]
+        time = [0, 4, 8, 0]
+
+        expectedXCoefs = [-31/256.0, 67/64.0, -1.0, 6.0]
+        expectedYCoefs = [-49/256.0, 141/64.0, -5.0, 4.0]
+
+        result = self._sut_.getSplinesCoefficients(positions, velocities, time)
+        self.assertTrue(result.has_key("xCoefs"))
+        self.assertTrue(result.has_key("yCoefs"))
+
+        self.assertEqual(len(expectedXCoefs), len(result["xCoefs"]))
+        self.assertEqual(len(expectedYCoefs), len(result["yCoefs"]))
+
+        for i in range(len(expectedXCoefs)):
+            self.assertAlmostEqual(expectedXCoefs[i], result["xCoefs"][i])
+
+        for i in range(len(expectedYCoefs)):
+            self.assertAlmostEqual(expectedYCoefs[i], result["yCoefs"][i])
+
 
 if __name__ == '__main__':
     unittest.main()

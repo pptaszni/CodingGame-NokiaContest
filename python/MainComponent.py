@@ -55,6 +55,34 @@ class Calculator:
         pass
     def inverse(self, matrix):
         return matrix**-1
+    def getSplinesCoefficients(self, inPositions, inVelocities, time):
+        assert len(inPositions) + len(inVelocities) == len(time)
+        dim = len(time)
+
+        A = numpy.matrix(numpy.zeros((dim, dim)))
+
+        for i in range(len(inPositions)):
+            row = [time[i]**j for j in range(dim)]
+            row.reverse()
+            A[i] = row
+
+        for i in range(len(inPositions), dim):
+            row = [j*(time[i]**(j-1)) for j in range(1,dim)]
+            row.reverse()
+            row.append(0.0)
+            A[i] = row
+
+        X = [it.getX() for it in inPositions]
+        X.extend([it.getX() for it in inVelocities])
+        Y = [it.getY() for it in inPositions]
+        Y.extend([it.getY() for it in inVelocities])
+
+        invA = self.inverse(A)
+
+        coefsX = invA.dot(X).getA1()
+        coefsY = invA.dot(Y).getA1()
+
+        return {"xCoefs": coefsX, "yCoefs": coefsY}
 
 class GameController:
     def __init__(self):
