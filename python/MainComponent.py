@@ -53,6 +53,8 @@ class Pod:
 class Calculator:
     def __init__(self):
         pass
+    def inverse(self, matrix):
+        return matrix**-1
 
 class GameController:
     def __init__(self):
@@ -108,4 +110,5 @@ class GameController:
         print str(dest.getX()) + " " + str(dest.getY()) + " " + str(thrust)
 
 
-GameController().startGame()
+if __name__ == '__main__':
+    GameController().startGame()
