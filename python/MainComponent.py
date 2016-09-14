@@ -19,13 +19,13 @@ class Point:
         else:
             self._y_ = y
     def getX(self):
-        return _x_
+        return self._x_
     def getY(self):
-        return _y_
+        return self._y_
     def setX(self, x):
-        _x_ = x
+        self._x_ = x
     def setY(self, y):
-        _y_ = y
+        self._y_ = y
 
 class Pod:
     def __init__(self):
@@ -40,7 +40,7 @@ class Pod:
     def getAngle(self):
         return self._angle_
     def getNextCheckPointId(self):
-        return _nextCheckPointId_
+        return self._nextCheckPointId_
     def setPos(self, pos):
         self._pos_ = pos
     def setVel(self, vel):
@@ -71,31 +71,39 @@ class GameController:
         self.trivialStrategy()
     def trivialStrategy(self):
         while True:
+            debugLog("Going to load runtime data ...")
             self.loadRuntimeData()
-            dest = _checkpointPos_[_myPod_.getNextCheckPointId()]
+            debugLog("Runtime data loaded")
+            dest = self._checkpointPos_[self._myPod_.getNextCheckPointId()]
             thrust = 50
             self.writeSolution(dest, thrust)
     def loadInitialData(self):
         self._playerCount_ = int(raw_input())
+        self._enemyPods_.extend([Pod() for i in range(0,self._playerCount_-1)])
+        assert len(self._enemyPods_) == self._playerCount_-1
         self._laps_ = int(raw_input())
         self._boosts_ = int(raw_input())
         self._checkpointCount_ = int(raw_input())
         for i in range(self._checkpointCount_):
             checkpoint_x, checkpoint_y = [int(j) for j in raw_input().split()]
             self._checkpointPos_.append(Point(checkpoint_x, checkpoint_y))
+        debugLog("players: " + str(self._playerCount_) +
+            ", laps: " + str(self._laps_) +
+            ", boosts: " + str(self._boosts_) +
+            ", checkpoints: " + str(self._checkpointCount_) +
+            ", enemyPods: " + str(len(self._enemyPods_)))
     def loadRuntimeData(self):
         x, y, vx, vy, next_check_point_id = [int(j) for j in raw_input().split()]
         self._myPod_.setPos(Point(x,y))
         self._myPod_.setVel(Point(vx,vy))
         self._myPod_.setAngle(0)  # not sure if needed ...
         self._myPod_.setNextCheckPointId(next_check_point_id)
-        while True:
-            for i in range(self._playerCount_ - 1):
-                x, y, vx, vy, next_check_point_id = [int(j) for j in raw_input().split()]
-                self._enemyPods_[i].setPos(Point(x,y))
-                self._enemyPods_[i].setVel(Point(vx,vy))
-                self._enemyPods_[i].setAngle(0)  # not sure if needed ...
-                self._enemyPods_[i].setNextCheckPointId(next_check_point_id)
+        for i in range(self._playerCount_ - 1):
+            x, y, vx, vy, next_check_point_id = [int(j) for j in raw_input().split()]
+            self._enemyPods_[i].setPos(Point(x,y))
+            self._enemyPods_[i].setVel(Point(vx,vy))
+            self._enemyPods_[i].setAngle(0)  # not sure if needed ...
+            self._enemyPods_[i].setNextCheckPointId(next_check_point_id)
     def writeSolution(self, dest, thrust):
         print str(dest.getX()) + " " + str(dest.getY()) + " " + str(thrust)
 
