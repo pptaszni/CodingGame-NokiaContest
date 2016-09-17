@@ -66,6 +66,7 @@ class Calculator:
         result = 0
         for i in range(len(coefs)):
             result = result + coefs[i]*tVec[i]
+        #debugLog("Poly["+str(len(coefs))+"] = "+str(result))
         return result
     def inverse(self, matrix):
         return matrix**-1
@@ -132,6 +133,20 @@ class Calculator:
             nextNextCheckPointId = 0
         p2 = checkpointPos[nextNextCheckPointId]
         return [p0, p1, p2]
+    def calculateDestAndThrustValues(self, pod, splineCoefs):
+        x0 = pod.getPos().getX()
+        y0 = pod.getPos().getY()
+        x1 = self.polynomial(splineCoefs["xCoefs"], 1) # calc x for t=1
+        y1 = self.polynomial(splineCoefs["yCoefs"], 1) # calc y for t=1
+        velX = pod.getVel().getX()
+        velY = pod.getVel().getY()
+        thrustX = x1-x0-velX
+        thrustY = y1-y0-velY
+        totalThrust = math.sqrt(thrustX**2 + thrustY**2)
+        totalThrust = int(round(totalThrust))
+        xDest = int(round(x0+thrustX))
+        yDest = int(round(y0+thrustY))
+        return {"dest": Point(xDest, yDest), "thrust": totalThrust}
 
 class Algorithms:
     def __init__(self):
@@ -155,8 +170,11 @@ class Algorithms:
             debugLog("OK: Y thrust in bounds")
         else:
             debugLog("NOK: Y thrust out of bounds")
-        # impl not finished!!!!!!!!!!!!!!!!!!!!!!!!!!
-        return {"pos": Point(), "thrust": 100}
+        tmpPod = Pod()
+        tmpPod.setPos(pVec[0])
+        tmpPod.setVel(vel)
+        result = self._calculator_.calculateDestAndThrustValues(tmpPod, splineCoefs)
+        return {"pos": result["dest"], "thrust": result["thrust"]}
 
 class GameController:
     def __init__(self):
@@ -168,12 +186,13 @@ class GameController:
         self._myPod_ = Pod()
         self._enemyPods_ = []
         self._calculator_ = Calculator()
+        self._algrithms_ = Algorithms()
         self._thrustLimit = 100
     def startGame(self):
         debugLog("Game started ...")
         self.loadInitialData()
         debugLog("Initial data loaded ...")
-        self.trivialStrategy()
+        self.newStrategy()
     def trivialStrategy(self):
         while True:
             debugLog("Going to load runtime data ...")
@@ -182,6 +201,14 @@ class GameController:
             dest = self._checkpointPos_[self._myPod_.getNextCheckPointId()]
             thrust = 100
             self.writeSolution(dest, thrust)
+    def newStrategy(self):
+        while True:
+            debugLog("Going to load runtime data ...")
+            self.loadRuntimeData()
+            debugLog("Runtime data loaded")
+            pVec = self._calculator_.prepare3PositionsVector(self._myPod_, self._checkpointPos_)
+            solution = self._algrithms_.InterpolationStrategy(pVec, self._myPod_.getVel())
+            self.writeSolution(solution["pos"], solution["thrust"])
     def loadInitialData(self):
         self._playerCount_ = int(raw_input())
         self._enemyPods_.extend([Pod() for i in range(0,self._playerCount_-1)])

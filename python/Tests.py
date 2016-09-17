@@ -1,6 +1,7 @@
 import unittest
 import random
 import numpy
+import math
 
 from MainComponent import Point
 from MainComponent import Pod
@@ -187,6 +188,21 @@ class CalculatorTests(unittest.TestCase):
         self.assertEqual(expectedP0, result[0])
         self.assertEqual(expectedP1, result[1])
         self.assertEqual(expectedP2, result[2])
+
+    def testCalculateDestAndThrustValuesReturnsCorrectDirectionAndThrust(self):
+        sutPod = Pod()
+        sutPod.setPos(Point(7242, 3319))
+        sutPod.setVel(Point(-305,188))
+        xCoefs = [6000, 800, 50, 6]
+        yCoefs = [3000, 500, 30, 2]
+        expectedThrust = 85
+        expectedAngle = math.atan(-81.0/25.0)
+        result = self._sut_.calculateDestAndThrustValues(sutPod, {"xCoefs": xCoefs, "yCoefs": yCoefs})
+        print result["dest"].__dict__
+        self.assertTrue(result.has_key("dest"))
+        self.assertTrue(result.has_key("thrust"))
+        self.assertEqual(expectedThrust, result["thrust"])
+        self.assertEqual(expectedAngle, math.atan((result["dest"].getX()-sutPod.getPos().getX())/(result["dest"].getY() - sutPod.getPos().getY())))
 
 class AlgorithmsTests(unittest.TestCase):
     def setUp(self):
