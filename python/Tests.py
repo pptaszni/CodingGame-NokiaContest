@@ -77,6 +77,16 @@ class CalculatorTests(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testPolynomialReturnCorrectValue(self):
+        coefs1 = [1, 2, 3]
+        coefs2 = [2, -3, 4, -5, -6]
+        t1 = 5
+        t2 = 6
+        expected1 = 38
+        expected2 = 2052
+        self.assertEqual(expected1, self._sut_.polynomial(coefs1, t1))
+        self.assertEqual(expected2, self._sut_.polynomial(coefs2, t2))
+
     def testProdMatrixInverseShouldReturnIdentity(self):
         A = numpy.matrix([generateRandomRow(3) for i in range(3)])
         B = numpy.matrix([generateRandomRow(4) for i in range(4)])
@@ -120,6 +130,29 @@ class CalculatorTests(unittest.TestCase):
         self._calculateCorrectSplineCoefficients_(
             positions, velocities, time, expectedXCoefs, expectedYCoefs)
 
+    def test3PolyDerivativeInBoundsCorrect(self):
+        coefs1 = [0.5/3, -1, 3, 5]
+        coefs2 = [-0.1, 0.3, 3, -4]
+        time = [0,8]
+        lowerB1_OK = 0
+        lowerB1_NOK = 2
+        upperB1_OK = 21
+        upperB1_NOK = 15
+        lowerB2_OK = -13
+        lowerB2_NOK = -10
+        upperB2_OK = 4
+        upperB2_NOK = 2
+
+        self.assertTrue(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_OK, upperB1_OK))
+        self.assertTrue(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_OK, upperB2_OK))
+
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_NOK, upperB1_OK))
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_OK, upperB1_NOK))
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_NOK, upperB1_NOK))
+
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_NOK, upperB2_OK))
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_OK, upperB2_NOK))
+        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_NOK, upperB2_NOK))
 
 if __name__ == '__main__':
     unittest.main()

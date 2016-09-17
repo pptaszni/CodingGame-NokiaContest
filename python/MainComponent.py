@@ -53,36 +53,59 @@ class Pod:
 class Calculator:
     def __init__(self):
         pass
+    def _inBounds_(self, val, lowerB, upperB):
+        if val >= lowerB and val <= upperB:
+            return True
+        else:
+            return False
+    def polynomial(self, coefs, t):
+        tVec = [t**i for i in range(len(coefs))]
+        tVec.reverse()
+        result = 0
+        for i in range(len(coefs)):
+            result = result + coefs[i]*tVec[i]
+        return result
     def inverse(self, matrix):
         return matrix**-1
     def getSplinesCoefficients(self, inPositions, inVelocities, time):
         assert len(inPositions) + len(inVelocities) == len(time)
         dim = len(time)
-
         A = numpy.matrix(numpy.zeros((dim, dim)))
-
         for i in range(len(inPositions)):
             row = [time[i]**j for j in range(dim)]
             row.reverse()
             A[i] = row
-
         for i in range(len(inPositions), dim):
             row = [j*(time[i]**(j-1)) for j in range(1,dim)]
             row.reverse()
             row.append(0.0)
             A[i] = row
-
         X = [it.getX() for it in inPositions]
         X.extend([it.getX() for it in inVelocities])
         Y = [it.getY() for it in inPositions]
         Y.extend([it.getY() for it in inVelocities])
-
         invA = self.inverse(A)
-
         coefsX = invA.dot(X).getA1()
         coefsY = invA.dot(Y).getA1()
-
         return {"xCoefs": coefsX, "yCoefs": coefsY}
+    def verify3PolyDerivativeInBounds(self, coefs, time, lowerB, upperB):
+        assert len(coefs) == 4 # 3rd degree polynomial
+        assert len(time) == 2 # only t0 and tEnd
+        a = 3*coefs[0]
+        assert a != 0
+        b = 2*coefs[1]
+        c = coefs[2]
+        t0 = time[0]
+        tEnd = time[1]
+        tExtremum = -b/(2*a)
+        if tExtremum > t0 and tExtremum < tEnd:
+            if not self._inBounds_(self.polynomial([a, b, c], tExtremum), lowerB, upperB):
+                return False
+        if not self._inBounds_(self.polynomial([a, b, c], t0), lowerB, upperB):
+            return False
+        if  not self._inBounds_(self.polynomial([a, b, c], tEnd), lowerB, upperB):
+            return False
+        return True
 
 class GameController:
     def __init__(self):
