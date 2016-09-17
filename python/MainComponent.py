@@ -18,6 +18,8 @@ class Point:
             self._y_ = 0
         else:
             self._y_ = y
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
     def getX(self):
         return self._x_
     def getY(self):
@@ -88,7 +90,7 @@ class Calculator:
         coefsX = invA.dot(X).getA1()
         coefsY = invA.dot(Y).getA1()
         return {"xCoefs": coefsX, "yCoefs": coefsY}
-    def verify3PolyDerivativeInBounds(self, coefs, time, lowerB, upperB):
+    def verify3PolyVelocityInBounds(self, coefs, time, lowerB, upperB):
         assert len(coefs) == 4 # 3rd degree polynomial
         assert len(time) == 2 # only t0 and tEnd
         a = 3*coefs[0]
@@ -106,6 +108,55 @@ class Calculator:
         if  not self._inBounds_(self.polynomial([a, b, c], tEnd), lowerB, upperB):
             return False
         return True
+    def verify3PolyThrustInBounds(self, coefs, time, lowerB, upperB):
+        assert len(coefs) == 4 # 3rd degree polynomial
+        assert len(time) == 2 # only t0 and tEnd
+        a = 6*coefs[0]
+        b = 2*coefs[1]
+        t0 = time[0]
+        tEnd = time[1]
+        if not self._inBounds_(self.polynomial([a, b], t0), lowerB, upperB):
+            return False
+        if not self._inBounds_(self.polynomial([a, b], tEnd), lowerB, upperB):
+            return False
+        return True
+    def prepare3PositionsVector(self, pod, checkpointPos):
+        assert isinstance(pod, Pod)
+        checkPointCount = len(checkpointPos)
+        assert pod.getNextCheckPointId() < checkPointCount
+        p0 = pod.getPos()
+        p1 = checkpointPos[pod.getNextCheckPointId()]
+        nextNextCheckPointId = pod.getNextCheckPointId() + 1
+        assert nextNextCheckPointId <= checkPointCount
+        if nextNextCheckPointId == checkPointCount:
+            nextNextCheckPointId = 0
+        p2 = checkpointPos[nextNextCheckPointId]
+        return [p0, p1, p2]
+
+class Algorithms:
+    def __init__(self):
+        self._calculator_ = Calculator()
+        self._thrustUpperBound_ = 100
+        self._thrustLowerBound_ = 100
+    def InterpolationStrategy(self, pVec, vel):
+        assert len(pVec) == 3 # 3 points interpolation
+        assert isinstance(vel, Point)
+        time = [0, 20, 40, 0]
+        t0 = time[0]
+        tEnd = time[2]
+        splineCoefs = self._calculator_.getSplinesCoefficients(pVec, [vel], time)
+        if (self._calculator_.verify3PolyThrustInBounds(
+            splineCoefs["xCoefs"], [t0,tEnd], self._thrustLowerBound_, self._thrustUpperBound_)):
+            debugLog("OK: X thrust in bounds")
+        else:
+            debugLog("NOK: X thrust out of bounds")
+        if (self._calculator_.verify3PolyThrustInBounds(
+            splineCoefs["yCoefs"], [t0,tEnd], self._thrustLowerBound_, self._thrustUpperBound_)):
+            debugLog("OK: Y thrust in bounds")
+        else:
+            debugLog("NOK: Y thrust out of bounds")
+        # impl not finished!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return {"pos": Point(), "thrust": 100}
 
 class GameController:
     def __init__(self):
@@ -117,6 +168,7 @@ class GameController:
         self._myPod_ = Pod()
         self._enemyPods_ = []
         self._calculator_ = Calculator()
+        self._thrustLimit = 100
     def startGame(self):
         debugLog("Game started ...")
         self.loadInitialData()
@@ -128,7 +180,7 @@ class GameController:
             self.loadRuntimeData()
             debugLog("Runtime data loaded")
             dest = self._checkpointPos_[self._myPod_.getNextCheckPointId()]
-            thrust = 50
+            thrust = 100
             self.writeSolution(dest, thrust)
     def loadInitialData(self):
         self._playerCount_ = int(raw_input())

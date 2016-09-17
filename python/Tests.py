@@ -5,6 +5,7 @@ import numpy
 from MainComponent import Point
 from MainComponent import Pod
 from MainComponent import Calculator
+from MainComponent import Algorithms
 
 def generateRandomRow(size):
     result = []
@@ -130,7 +131,7 @@ class CalculatorTests(unittest.TestCase):
         self._calculateCorrectSplineCoefficients_(
             positions, velocities, time, expectedXCoefs, expectedYCoefs)
 
-    def test3PolyDerivativeInBoundsCorrect(self):
+    def test3PolyDerivativesInBoundsCorrect(self):
         coefs1 = [0.5/3, -1, 3, 5]
         coefs2 = [-0.1, 0.3, 3, -4]
         time = [0,8]
@@ -143,16 +144,64 @@ class CalculatorTests(unittest.TestCase):
         upperB2_OK = 4
         upperB2_NOK = 2
 
-        self.assertTrue(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_OK, upperB1_OK))
-        self.assertTrue(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_OK, upperB2_OK))
+        self.assertTrue(self._sut_.verify3PolyVelocityInBounds(coefs1, time, lowerB1_OK, upperB1_OK))
+        self.assertTrue(self._sut_.verify3PolyVelocityInBounds(coefs2, time, lowerB2_OK, upperB2_OK))
 
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_NOK, upperB1_OK))
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_OK, upperB1_NOK))
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs1, time, lowerB1_NOK, upperB1_NOK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs1, time, lowerB1_NOK, upperB1_OK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs1, time, lowerB1_OK, upperB1_NOK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs1, time, lowerB1_NOK, upperB1_NOK))
 
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_NOK, upperB2_OK))
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_OK, upperB2_NOK))
-        self.assertFalse(self._sut_.verify3PolyDerivativeInBounds(coefs2, time, lowerB2_NOK, upperB2_NOK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs2, time, lowerB2_NOK, upperB2_OK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs2, time, lowerB2_OK, upperB2_NOK))
+        self.assertFalse(self._sut_.verify3PolyVelocityInBounds(coefs2, time, lowerB2_NOK, upperB2_NOK))
+
+        coefs = [-31/256.0, 67/64.0, -1.0, 6.0]
+        lowerB_OK = -4
+        lowerB_NOK = -3
+        upperB_OK = 3
+        upperB_NOK = 2
+        self.assertTrue(self._sut_.verify3PolyThrustInBounds(coefs, time, lowerB_OK, upperB_OK))
+        self.assertFalse(self._sut_.verify3PolyThrustInBounds(coefs, time, lowerB_OK, upperB_NOK))
+        self.assertFalse(self._sut_.verify3PolyThrustInBounds(coefs, time, lowerB_NOK, upperB_OK))
+        self.assertFalse(self._sut_.verify3PolyThrustInBounds(coefs, time, lowerB_NOK, upperB_NOK))
+
+    def testPrepare3PositionsVectorReturn3CorrectElems(self):
+        expectedP0 = Point(10,11)
+        expectedP1 = Point(12,13)
+        expectedP2 = Point(14,15)
+        sutPod = Pod()
+        sutPod.setPos(expectedP0)
+        sutPod.setNextCheckPointId(5)
+        checkpointPos = [Point(), Point(), Point(), Point(), Point(), expectedP1, expectedP2, Point()]
+        result = self._sut_.prepare3PositionsVector(sutPod, checkpointPos)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(expectedP0, result[0])
+        self.assertEqual(expectedP1, result[1])
+        self.assertEqual(expectedP2, result[2])
+        checkpointPos.pop()
+        checkpointPos.pop()
+        expectedP2 = Point(20,21)
+        checkpointPos[0] = expectedP2
+        result = self._sut_.prepare3PositionsVector(sutPod, checkpointPos)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(expectedP0, result[0])
+        self.assertEqual(expectedP1, result[1])
+        self.assertEqual(expectedP2, result[2])
+
+class AlgorithmsTests(unittest.TestCase):
+    def setUp(self):
+        self._sut_ = Algorithms()
+
+    def tearDown(self):
+        pass
+
+
+    def testInterpolationStrategy(self):
+        pvec = [Point(1,2), Point(3,4), Point(5,6)]
+        vel = Point(-1,-1)
+        result = self._sut_.InterpolationStrategy(pvec, vel)
+        self.assertTrue(result.has_key("pos"))
+        self.assertTrue(result.has_key("thrust"))
 
 if __name__ == '__main__':
     unittest.main()
